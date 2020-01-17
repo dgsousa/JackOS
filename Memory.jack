@@ -59,7 +59,7 @@ class Memory {
     function void deAlloc(Array o) {
         var int counter, oAddress, address, prevAddress, size;
         let oAddress = o - 1;
-        let size = o[0];
+        let size = oAddress[0];
         let counter = 1;
         while(counter < size) {
             let o[counter] = 0;
