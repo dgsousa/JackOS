@@ -1,0 +1,94 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
+class Memory {
+    static Array m;
+    static Array freeList;
+
+
+    /** Initializes the class. */
+    function void init() {
+        let freeList = 2048;
+        let freeList[0] = 14335;
+        let freeList[1] = 0;
+        let m = 0;
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return m[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let m[address] = value;
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        var int blockSize, address, allocatedAddress;
+        let blockSize = freeList[0];
+        let address = freeList;
+        while(blockSize < (size + 1)) {
+            if(address = 0) {
+                // update to throw real error
+                // do Output.printString("ERROR: HEAP OUT OF MEMORY");
+            } else {
+                let blockSize = address[0];
+                let address = address[1];
+            }
+        }
+        let address[0] = address[0] - (size + 1);
+        let allocatedAddress = (address + blockSize - size + 1);
+        do Memory.poke((allocatedAddress - 1), (size + 1));
+        return allocatedAddress; 
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        var int counter, oAddress, address, prevAddress, size;
+        let oAddress = o - 1;
+        let size = o[0];
+        let counter = 1;
+        while(counter < size) {
+            let o[counter] = 0;
+            let counter = counter + 1;
+        }
+        let address = freeList;
+        while((address < oAddress) & ~(address = 0)) {
+            let prevAddress = address;
+            let address = address[1];
+        }
+        let prevAddress[1] = oAddress;
+        let oAddress[1] = address;
+        do Memory.deFrag();
+        return;
+    }
+
+    function void deFrag() {
+        var int address, prevAddress;
+        let prevAddress = freeList;
+        let address = prevAddress[1];
+        while(~(address = 0)) {
+            if(address = (prevAddress + prevAddress[0])) {
+                let prevAddress[0] = prevAddress[0] + address[0];
+                let prevAddress[1] = address[1];
+            } else {
+                let prevAddress = address;
+            }
+            let address = address[1];
+        }
+        return;
+    }
+}
